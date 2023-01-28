@@ -1,19 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
+﻿using parking_detector.Classes;
+using System;
 using System.IO;
-using System.Text;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using System.Windows.Threading;
-using parking_detector.Classes;
+using SixLabors.ImageSharp;
 
 namespace parking_detector.Controls
 {
@@ -63,44 +56,33 @@ namespace parking_detector.Controls
             var width = videoPlayer.NaturalVideoWidth;
             var height = videoPlayer.NaturalVideoHeight;
 
-            if (width > 0 && height > 0)
+
+            using (var dc = visual.RenderOpen())
             {
-                if (bitmap == null ||
-                    bitmap.PixelWidth != width ||
-                    bitmap.PixelHeight != height)
-                {
-                    using (var dc = visual.RenderOpen())
-                    {
-                        dc.DrawRectangle(
-                            new VisualBrush(videoPlayer), null,
-                            new Rect(0, 0, width, height));
-                    }
-
-                    bitmap = new RenderTargetBitmap(
-                        width, height, 96, 96, PixelFormats.Default);
-
-                    byte[] data;
-                    JpegBitmapEncoder encoder = new JpegBitmapEncoder();
-                    encoder.Frames.Add(BitmapFrame.Create(bitmap));
-                    using (MemoryStream ms = new MemoryStream())
-                    {
-                        encoder.Save(ms);
-                        data = ms.ToArray();
-                    }
-
-                    detect.SetImage(data);
-                    detect.PreprocessImage();
-                    detect.RunInference();
-                    MemoryStream byteStream = new MemoryStream(detect.ViewPrediction());
-                    BitmapImage image = new BitmapImage();
-                    image.BeginInit();
-                    image.StreamSource = byteStream;
-                    image.EndInit();
-                    imageResult.Source = image;
-                }
-
-                bitmap.Render(visual);
+                dc.DrawRectangle(
+                    new VisualBrush(videoPlayer), null,
+                    new Rect(0, 0, width, height));
             }
+
+            bitmap = new RenderTargetBitmap(
+                width, height, 96, 96, PixelFormats.Default);
+
+
+            imageResult.Source = bitmap;
+            bitmap.Render(visual);
+
+
+            detect.SetImage(imageResult.Source);
+            detect.PreprocessImage();
+            detect.RunInference();
+
+            BitmapImage biImg = new BitmapImage();
+            MemoryStream ms = new MemoryStream(detect.ViewPrediction());
+            biImg.BeginInit();
+            biImg.StreamSource = ms;
+            biImg.EndInit();
+            imageResult.Source = biImg as ImageSource;
+
         }
     }
 }

@@ -1,15 +1,23 @@
 ﻿using Microsoft.ML.OnnxRuntime;
 using Microsoft.ML.OnnxRuntime.Tensors;
-using SixLabors.Fonts;
 using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Drawing.Processing;
 using SixLabors.ImageSharp.Formats;
+using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using SixLabors.ImageSharp.Drawing.Processing;
+using System.Windows.Media;
+using System.Windows.Media.Imaging;
+
+
+using Color = SixLabors.ImageSharp.Color;
+using Font = SixLabors.Fonts.Font;
+using PointF = SixLabors.ImageSharp.PointF;
+using SystemFonts = SixLabors.Fonts.SystemFonts;
 
 namespace parking_detector.Classes
 {
@@ -18,22 +26,29 @@ namespace parking_detector.Classes
         string path = Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.FullName;
         public InferenceSession session;
 
-        Image<Rgb24> image;
-        IImageFormat format;
+        public Image<Rgb24> image;
 
-
+        (string inputTensorName, NodeMetadata inputNodeMetadata) data;
 
         List<NamedOnnxValue> inputs;
         List<Prediction> predictions;
         public Detection()
         {
             string modelPath = path + "//Model/model.onnx";
-            session = session = new InferenceSession(modelPath);
+            session = new InferenceSession(modelPath);
+            data.inputTensorName = session.InputMetadata.First().Key;
+            data.inputNodeMetadata = session.InputMetadata.First().Value;
         }
 
-        public void SetImage(byte[] data)
+        public void SetImage(ImageSource bmpSource)
         {
-            image = SixLabors.ImageSharp.Image.Load<Rgb24>(data, out format);
+            using(MemoryStream ms = new MemoryStream())
+            {
+                JpegBitmapEncoder encoder = new JpegBitmapEncoder();
+                encoder.Frames.Add(BitmapFrame.Create(bmpSource as BitmapSource));
+                encoder.Save(ms);
+                image = (Image<Rgb24>)Image.Load(ms.ToArray());
+            }
         }
 
         public void PreprocessImage()
@@ -41,12 +56,16 @@ namespace parking_detector.Classes
             float ratio = 800f / Math.Min(image.Width, image.Height);
             using Stream imageStream = new MemoryStream();
             image.Mutate(x => x.Resize((int)(ratio * image.Width), (int)(ratio * image.Height)));
-            image.Save(imageStream, format);
+            image.SaveAsJpeg(imageStream); 
 
-            var (inputTensorName, inputNodeMetadata) = session.InputMetadata.First();
-            Tensor<float> input = new DenseTensor<float>(new[] { 1, inputNodeMetadata.Dimensions[1], inputNodeMetadata.Dimensions[2], inputNodeMetadata.Dimensions[3]});
+
+            Tensor<float> input = new DenseTensor<float>(new[] { 1, data.inputNodeMetadata.Dimensions[1],
+                data.inputNodeMetadata.Dimensions[2], data.inputNodeMetadata.Dimensions[3]});
             var mean = new[] { 102.9801f, 115.9465f, 122.7717f };
-            image.Mutate(x => x.Resize(inputNodeMetadata.Dimensions[3], inputNodeMetadata.Dimensions[2]));
+            image.Mutate(x => x.Resize(data.inputNodeMetadata.Dimensions[3], 
+                data.inputNodeMetadata.Dimensions[2]));
+
+
             image.ProcessPixelRows(accessor =>
             {
                 for (int y = 0; y < accessor.Height; y++)
@@ -63,7 +82,7 @@ namespace parking_detector.Classes
 
             inputs = new List<NamedOnnxValue>
             {
-                NamedOnnxValue.CreateFromTensor(inputTensorName, input)
+                NamedOnnxValue.CreateFromTensor(data.inputTensorName, input)
             };
         }
 
@@ -96,30 +115,34 @@ namespace parking_detector.Classes
         public byte[] ViewPrediction()
         {
             Font font = SystemFonts.CreateFont("Arial", 16);
+            float h = image.Height;
+            float w = image.Width;
             foreach (var p in predictions)
             {
                 image.Mutate(x =>
                 {
                     x.DrawLines(Color.Red, 2f, new PointF[] {
 
-                        new PointF(p.Box.Xmin, p.Box.Ymin),
-                        new PointF(p.Box.Xmax, p.Box.Ymin),
+                        new PointF(p.Box.Xmin * w, p.Box.Ymin * h),
+                        new PointF(p.Box.Xmax * w, p.Box.Ymin * h),
 
-                        new PointF(p.Box.Xmax, p.Box.Ymin),
-                        new PointF(p.Box.Xmax, p.Box.Ymax),
+                        new PointF(p.Box.Xmax * w, p.Box.Ymin * h),
+                        new PointF(p.Box.Xmax * w, p.Box.Ymax * h),
 
-                        new PointF(p.Box.Xmax, p.Box.Ymax),
-                        new PointF(p.Box.Xmin, p.Box.Ymax),
+                        new PointF(p.Box.Xmax * w, p.Box.Ymax * h),
+                        new PointF(p.Box.Xmin * w, p.Box.Ymax * h),
 
-                        new PointF(p.Box.Xmin, p.Box.Ymax),
-                        new PointF(p.Box.Xmin, p.Box.Ymin)
+                        new PointF(p.Box.Xmin * w, p.Box.Ymax * h),
+                        new PointF(p.Box.Xmin * w, p.Box.Ymin * h)
         });
-                    x.DrawText($"{p.Label}, {p.Confidence:0.00}", font, Color.White, new PointF(p.Box.Xmin, p.Box.Ymin));
+                    x.DrawText($"{p.Label}, {p.Confidence:0.00}", font, Color.White, new PointF(p.Box.Xmin * w, p.Box.Ymin * h));
                 });
             }
             MemoryStream ms = new MemoryStream();
-            image.Save(ms, format);
-            return ms.ToArray();
+            image.SaveAsJpeg(ms);
+            byte[] result = ms.ToArray();
+            ms.Close();
+            return result;
         }
     }
 }
