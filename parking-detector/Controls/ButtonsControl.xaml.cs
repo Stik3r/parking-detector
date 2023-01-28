@@ -39,6 +39,17 @@ namespace parking_detector.Controls
             }
 
             videoControl.videoPlayer.Source = (Uri)(new UriTypeConverter().ConvertFromString(path));
+            videoControl.videoPlayer.Play();
+        }
+
+        private void StopBtn_Click(object sender, RoutedEventArgs e)
+        {
+            videoControl.videoPlayer.Pause();
+        }
+
+        private void StartBtn_Click(object sender, RoutedEventArgs e)
+        {
+            videoControl.videoPlayer.Play();
         }
     }
 }

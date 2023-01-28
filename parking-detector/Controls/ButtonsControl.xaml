@@ -9,8 +9,8 @@
     <Grid>
         <StackPanel Orientation="Horizontal">
             <Button Height="25" Width="100" HorizontalAlignment="Left" Margin="10,0,10,0" Content="Загрузить файл" Click="LoadBtn_Click"/>
-            <Button  Height="25" Width="100" HorizontalAlignment="Left" Margin="0,0,10,0" Content="Пуск"/>
-            <Button  Height="25" Width="100" HorizontalAlignment="Left" Margin="0,0,10,0" Content="Пауза"/>
+            <Button  Height="25" Width="100" HorizontalAlignment="Left" Margin="0,0,10,0" Content="Пуск" Click="StartBtn_Click"/>
+            <Button  Height="25" Width="100" HorizontalAlignment="Left" Margin="0,0,10,0" Content="Пауза" Click="StopBtn_Click"/>
         </StackPanel>
     </Grid>
 </UserControl>

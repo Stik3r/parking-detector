@@ -11,8 +11,8 @@
             <RowDefinition Height="6*" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-        
-        <MediaElement x:Name="videoPlayer" Grid.Row="0" MediaOpened="VideoConrol_MediaOpened" MediaEnded="videoPlayer_MediaEnded"/>
+
+        <MediaElement x:Name="videoPlayer" Grid.Row="0" MediaOpened="VideoConrol_MediaOpened" MediaEnded="videoPlayer_MediaEnded" LoadedBehavior="Manual" UnloadedBehavior="Manual"/>
         <Slider Grid.Row="1" VerticalAlignment="Center" x:Name="slider" Maximum="100" SmallChange="1" Margin="5,0,5,0" />
     </Grid>
 </UserControl>
