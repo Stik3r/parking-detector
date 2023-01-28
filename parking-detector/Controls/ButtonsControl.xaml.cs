@@ -10,6 +10,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using parking_detector.Classes;
 
 namespace parking_detector.Controls
 {
@@ -22,7 +23,6 @@ namespace parking_detector.Controls
         public ButtonsControl()
         {
             InitializeComponent();
-            
         }
 
         private void LoadBtn_Click(object sender, RoutedEventArgs e)
@@ -50,6 +50,8 @@ namespace parking_detector.Controls
         private void StartBtn_Click(object sender, RoutedEventArgs e)
         {
             videoControl.videoPlayer.Play();
+            Detection d = new Detection();
+            MessageBox.Show(d.ToString());
         }
     }
 }
