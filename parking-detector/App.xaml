@@ -4,6 +4,6 @@
              xmlns:local="clr-namespace:parking_detector"
              StartupUri="MainWindow.xaml">
     <Application.Resources>
-         
+        
     </Application.Resources>
 </Application>

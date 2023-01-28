@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.IO;
 using System.Text;
 using System.Windows;
@@ -78,10 +79,24 @@ namespace parking_detector.Controls
                     bitmap = new RenderTargetBitmap(
                         width, height, 96, 96, PixelFormats.Default);
 
+                    byte[] data;
+                    JpegBitmapEncoder encoder = new JpegBitmapEncoder();
+                    encoder.Frames.Add(BitmapFrame.Create(bitmap));
+                    using (MemoryStream ms = new MemoryStream())
+                    {
+                        encoder.Save(ms);
+                        data = ms.ToArray();
+                    }
 
-                    Image image = new Image();
-                    image.Source = bitmap;
-                    detect.SetImage((BitmapImage)image.Source);
+                    detect.SetImage(data);
+                    detect.PreprocessImage();
+                    detect.RunInference();
+                    MemoryStream byteStream = new MemoryStream(detect.ViewPrediction());
+                    BitmapImage image = new BitmapImage();
+                    image.BeginInit();
+                    image.StreamSource = byteStream;
+                    image.EndInit();
+                    imageResult.Source = image;
                 }
 
                 bitmap.Render(visual);
