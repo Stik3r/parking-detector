@@ -2,8 +2,6 @@
 using Microsoft.ML.OnnxRuntime.Tensors;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
-using SixLabors.ImageSharp.Formats;
-using SixLabors.ImageSharp.Formats.Jpeg;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using System;
@@ -93,23 +91,14 @@ namespace parking_detector.Classes
 
 
             var resultsArray = results.ToArray();
-            float[] boxes = resultsArray[0].AsEnumerable<float>().ToArray();
-            float[] confidences = resultsArray[1].AsEnumerable<float>().ToArray();
+            var boxes = resultsArray[0];
+            var confidences = resultsArray[1];
             predictions = new List<Prediction>();
             var minConfidence = 0.7f;
-            for (int i = 0; i < boxes.Length - 4; i += 4)
-            {
-                var index = i / 4;
-                if (confidences[index] >= minConfidence)
-                {
-                    predictions.Add(new Prediction
-                    {
-                        Box = new Box(boxes[i], boxes[i + 1], boxes[i + 2], boxes[i + 3]),
-                        Label = "1",
-                        Confidence = confidences[index]
-                    });
-                }
-            }
+
+            float[][] bboxes = new float[3][];
+
+            var t = boxes.AsTensor<float>();
         }
 
         public byte[] ViewPrediction()
