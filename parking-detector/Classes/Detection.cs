@@ -91,14 +91,42 @@ namespace parking_detector.Classes
 
 
             var resultsArray = results.ToArray();
-            var boxes = resultsArray[0];
-            var confidences = resultsArray[1];
+            var boxes = resultsArray[0].AsTensor<float>().ToDenseTensor();
+            var confidences = resultsArray[1].AsTensor<float>().ToDenseTensor();
             predictions = new List<Prediction>();
             var minConfidence = 0.7f;
 
-            float[][] bboxes = new float[3][];
 
-            var t = boxes.AsTensor<float>();
+            var maxElems = new Dictionary<int, (int, float)>();
+            for(int i = 0; i < confidences.Dimensions[1]; i++)
+            {
+                float max = -1000;
+                int maxIndx = -1;
+                for(int j = 1; j < confidences.Dimensions[2]; j++)
+                {
+                    if(max < confidences[0, i, j] && confidences[0, i, j] > minConfidence)
+                    {
+                        max = confidences[0, i, j];
+                        maxIndx = j;
+                    }
+                }
+                if(maxIndx != -1)
+                {
+                    maxElems.Add(i, (maxIndx, max));
+                }
+            }
+
+            foreach(var elem in maxElems)
+            {
+                Prediction p = new Prediction()
+                {
+                    Box = new Box(boxes[0, elem.Key, 0, 0], boxes[0, elem.Key, 0, 1],
+                    boxes[0, elem.Key, 0, 2], boxes[0, elem.Key, 0, 3]),
+                    Label = LabelMap.Labels[elem.Value.Item1],
+                    Confidence = elem.Value.Item2
+                };
+                predictions.Add(p);
+            }
         }
 
         public byte[] ViewPrediction()
@@ -129,6 +157,7 @@ namespace parking_detector.Classes
             }
             MemoryStream ms = new MemoryStream();
             image.SaveAsJpeg(ms);
+            image.SaveAsJpeg("Data.jpeg");
             byte[] result = ms.ToArray();
             ms.Close();
             return result;
