@@ -12,7 +12,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 
-using Color = SixLabors.ImageSharp.Color;
+using Color = SixLabors.ImageSharp.Color; 
 using Font = SixLabors.Fonts.Font;
 using PointF = SixLabors.ImageSharp.PointF;
 using SystemFonts = SixLabors.Fonts.SystemFonts;
@@ -79,6 +79,7 @@ namespace parking_detector.Classes
 
             var bConfidences = BestConfidences(confidences);
             MakePredictions(boxes, bConfidences);
+            NMS();
         }
 
         public byte[] ViewPrediction()
@@ -94,17 +95,17 @@ namespace parking_detector.Classes
 
                         new PointF(p.Box.Xmin * w, p.Box.Ymin * h),
                         new PointF(p.Box.Xmax * w, p.Box.Ymin * h),
-
+                                                              
                         new PointF(p.Box.Xmax * w, p.Box.Ymin * h),
                         new PointF(p.Box.Xmax * w, p.Box.Ymax * h),
-
+                                                              
                         new PointF(p.Box.Xmax * w, p.Box.Ymax * h),
                         new PointF(p.Box.Xmin * w, p.Box.Ymax * h),
-
+                                                              
                         new PointF(p.Box.Xmin * w, p.Box.Ymax * h),
                         new PointF(p.Box.Xmin * w, p.Box.Ymin * h)
         });
-                    x.DrawText($"{p.Label}, {p.Confidence:0.00}", font, Color.White, new PointF(p.Box.Xmin * w, p.Box.Ymin * h));
+                    //x.DrawText($"{p.Label + ":" + predictions.IndexOf(p) + ":"}", font, Color.White, new PointF(p.Box.Xmin * w, p.Box.Ymin * h));
                 });
             }
             MemoryStream ms = new MemoryStream();
@@ -172,6 +173,7 @@ namespace parking_detector.Classes
         void MakePredictions(DenseTensor<float> boxes, Dictionary<int, (int, float)> confidences)
         {
             predictions = new List<Prediction>();
+            
 
             foreach (var elem in confidences)
             {
@@ -185,5 +187,46 @@ namespace parking_detector.Classes
                 predictions.Add(p);
             }
         }
+
+        void NMS()
+        {
+            List<float> areas = new List<float>();
+            predictions.Sort((x, y) => y.Confidence.CompareTo(x.Confidence));
+            foreach(var p in predictions)
+            {
+                areas.Add(p.Box.Square());
+            }
+
+            var tresh = 0.9f;
+            var result = new List<Prediction>();
+            while (predictions.Count > 0)
+            {
+                result.Add(predictions[0]);
+                for(int j = 1; j < predictions.Count; j++)
+                {
+                    var xx1 = Math.Min(predictions[0].Box.Xmin, predictions[j].Box.Xmin);
+                    var xx2 = Math.Min(predictions[0].Box.Xmax, predictions[j].Box.Xmax);
+                    var yy1 = Math.Min(predictions[0].Box.Ymin, predictions[j].Box.Ymin);
+                    var yy2 = Math.Min(predictions[0].Box.Ymax, predictions[j].Box.Ymax);
+
+                    var w = Math.Max(0f, xx2 - xx1);
+                    var h = Math.Max(0f, yy2 - yy1);
+
+                    var inter = w * h;
+
+                    var ovr = inter / (areas[0] + areas[j] - inter);
+                    if(ovr > tresh)
+                    {
+                        areas.RemoveAt(j);
+                        predictions.RemoveAt(j);
+                        j--;
+                    }
+                }
+                areas.RemoveAt(0);
+                predictions.RemoveAt(0);
+            }
+            predictions = result;
+        }
     }
 }
+    

@@ -22,5 +22,10 @@
             Ymax = ymax;
 
         }
+
+        public float Square()
+        {
+            return (Xmax - Xmin) * (Ymax - Ymin);
+        }
     }
 }
