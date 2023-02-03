@@ -19,7 +19,7 @@ using SystemFonts = SixLabors.Fonts.SystemFonts;
 
 namespace parking_detector.Classes
 {
-    class Detection
+    public class Detection
     {
         string path = Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.FullName;
         public InferenceSession session;
@@ -47,36 +47,19 @@ namespace parking_detector.Classes
                 encoder.Save(ms);
                 image = (Image<Rgb24>)Image.Load(ms.ToArray());
             }
+
         }
 
         public void PreprocessImage()
         {
-            float ratio = 800f / Math.Min(image.Width, image.Height);
-            using Stream imageStream = new MemoryStream();
-            image.Mutate(x => x.Resize((int)(ratio * image.Width), (int)(ratio * image.Height)));
-            image.SaveAsJpeg(imageStream); 
-
-
             Tensor<float> input = new DenseTensor<float>(new[] { 1, data.inputNodeMetadata.Dimensions[1],
                 data.inputNodeMetadata.Dimensions[2], data.inputNodeMetadata.Dimensions[3]});
-            var mean = new[] { 102.9801f, 115.9465f, 122.7717f };
             image.Mutate(x => x.Resize(data.inputNodeMetadata.Dimensions[3], 
                 data.inputNodeMetadata.Dimensions[2]));
 
 
-            image.ProcessPixelRows(accessor =>
-            {
-                for (int y = 0; y < accessor.Height; y++)
-                {
-                    Span<Rgb24> pixelSpan = accessor.GetRowSpan(y);
-                    for (int x = 0; x < accessor.Width; x++)
-                    {
-                        input[0, 0, y, x] = pixelSpan[x].B - mean[0];
-                        input[0, 1, y, x] = pixelSpan[x].G - mean[1];
-                        input[0, 2, y, x] = pixelSpan[x].R - mean[2];
-                    }
-                }
-            });
+            ToRGB(input);
+            Normalize(input);
 
             inputs = new List<NamedOnnxValue>
             {
@@ -93,40 +76,9 @@ namespace parking_detector.Classes
             var resultsArray = results.ToArray();
             var boxes = resultsArray[0].AsTensor<float>().ToDenseTensor();
             var confidences = resultsArray[1].AsTensor<float>().ToDenseTensor();
-            predictions = new List<Prediction>();
-            var minConfidence = 0.7f;
 
-
-            var maxElems = new Dictionary<int, (int, float)>();
-            for(int i = 0; i < confidences.Dimensions[1]; i++)
-            {
-                float max = -1000;
-                int maxIndx = -1;
-                for(int j = 1; j < confidences.Dimensions[2]; j++)
-                {
-                    if(max < confidences[0, i, j] && confidences[0, i, j] > minConfidence)
-                    {
-                        max = confidences[0, i, j];
-                        maxIndx = j;
-                    }
-                }
-                if(maxIndx != -1)
-                {
-                    maxElems.Add(i, (maxIndx, max));
-                }
-            }
-
-            foreach(var elem in maxElems)
-            {
-                Prediction p = new Prediction()
-                {
-                    Box = new Box(boxes[0, elem.Key, 0, 0], boxes[0, elem.Key, 0, 1],
-                    boxes[0, elem.Key, 0, 2], boxes[0, elem.Key, 0, 3]),
-                    Label = LabelMap.Labels[elem.Value.Item1],
-                    Confidence = elem.Value.Item2
-                };
-                predictions.Add(p);
-            }
+            var bConfidences = BestConfidences(confidences);
+            MakePredictions(boxes, bConfidences);
         }
 
         public byte[] ViewPrediction()
@@ -161,6 +113,77 @@ namespace parking_detector.Classes
             byte[] result = ms.ToArray();
             ms.Close();
             return result;
+        }
+
+        void Normalize(Tensor<float> input)
+        {
+            for(int i = 0; i < input.Dimensions[1]; i++)
+                for(int j = 0; j < input.Dimensions[2]; j++)
+                    for(int k = 0; k < input.Dimensions[3]; k++)
+                    {
+                        input[0, i, j, k] /= 255f;
+                    }
+        }
+
+        void ToRGB(Tensor<float> input)
+        {
+            image.ProcessPixelRows(accessor =>
+            {
+                for (int y = 0; y < accessor.Height; y++)
+                {
+                    Span<Rgb24> pixelSpan = accessor.GetRowSpan(y);
+                    for (int x = 0; x < accessor.Width; x++)
+                    {
+                        input[0, 0, y, x] = pixelSpan[x].R;
+                        input[0, 1, y, x] = pixelSpan[x].G;
+                        input[0, 2, y, x] = pixelSpan[x].B;
+                    }
+                }
+            });
+
+        }
+
+        //Dictionary<int, (int , float)> is <idBox, (indxLabel, confValue)>
+        Dictionary<int, (int , float)> BestConfidences(DenseTensor<float> confidences)
+        {
+            var minConfidence = 0.9f;
+            var result = new Dictionary<int, (int, float)>();
+
+            for (int i = 0; i < confidences.Dimensions[1]; i++)
+            {
+                float max = 0;
+                int maxIndx = -1;
+                for (int j = 1; j < confidences.Dimensions[2]; j++)
+                {
+                    if (max < confidences[0, i, j] && confidences[0, i, j] > minConfidence)
+                    {
+                        max = confidences[0, i, j];
+                        maxIndx = j;
+                    }
+                }
+                if (maxIndx != -1)
+                {
+                    result.Add(i, (maxIndx + 1, max));
+                }
+            }
+            return result;
+        }
+
+        void MakePredictions(DenseTensor<float> boxes, Dictionary<int, (int, float)> confidences)
+        {
+            predictions = new List<Prediction>();
+
+            foreach (var elem in confidences)
+            {
+                Prediction p = new Prediction()
+                {
+                    Box = new Box(boxes[0, elem.Key, 0, 0], boxes[0, elem.Key, 0, 1],
+                    boxes[0, elem.Key, 0, 2], boxes[0, elem.Key, 0, 3]),
+                    Label = LabelMap.Labels[elem.Value.Item1],
+                    Confidence = elem.Value.Item2
+                };
+                predictions.Add(p);
+            }
         }
     }
 }

@@ -19,7 +19,7 @@ namespace parking_detector.Controls
         private readonly DrawingVisual visual = new DrawingVisual();
         private RenderTargetBitmap bitmap;
 
-        private Detection detect = new Detection();
+        public Detection detect = new Detection();
         public VideoControl()
         {
             InitializeComponent();
