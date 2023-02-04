@@ -25,6 +25,7 @@ namespace parking_detector.Classes
         public InferenceSession session;
 
         public Image<Rgb24> image;
+        public (int, int) Size { get; set; }
 
         (string inputTensorName, NodeMetadata inputNodeMetadata) data;
 
@@ -91,26 +92,26 @@ namespace parking_detector.Classes
             {
                 image.Mutate(x =>
                 {
+                    x.Resize(Size.Item1, Size.Item2);
                     x.DrawLines(Color.Red, 2f, new PointF[] {
 
-                        new PointF(p.Box.Xmin * w, p.Box.Ymin * h),
-                        new PointF(p.Box.Xmax * w, p.Box.Ymin * h),
-                                                              
-                        new PointF(p.Box.Xmax * w, p.Box.Ymin * h),
-                        new PointF(p.Box.Xmax * w, p.Box.Ymax * h),
-                                                              
-                        new PointF(p.Box.Xmax * w, p.Box.Ymax * h),
-                        new PointF(p.Box.Xmin * w, p.Box.Ymax * h),
-                                                              
-                        new PointF(p.Box.Xmin * w, p.Box.Ymax * h),
-                        new PointF(p.Box.Xmin * w, p.Box.Ymin * h)
+                        new PointF(p.Box.Xmin * Size.Item1, p.Box.Ymin * Size.Item2),
+                        new PointF(p.Box.Xmax * Size.Item1, p.Box.Ymin * Size.Item2),
+                                                          
+                        new PointF(p.Box.Xmax * Size.Item1, p.Box.Ymin * Size.Item2),
+                        new PointF(p.Box.Xmax * Size.Item1, p.Box.Ymax * Size.Item2),
+                                                          
+                        new PointF(p.Box.Xmax * Size.Item1, p.Box.Ymax * Size.Item2),
+                        new PointF(p.Box.Xmin * Size.Item1, p.Box.Ymax * Size.Item2),
+                                                          
+                        new PointF(p.Box.Xmin * Size.Item1, p.Box.Ymax * Size.Item2),
+                        new PointF(p.Box.Xmin * Size.Item1, p.Box.Ymin * Size.Item2)
         });
                     //x.DrawText($"{p.Label + ":" + predictions.IndexOf(p) + ":"}", font, Color.White, new PointF(p.Box.Xmin * w, p.Box.Ymin * h));
                 });
             }
             MemoryStream ms = new MemoryStream();
             image.SaveAsJpeg(ms);
-            image.SaveAsJpeg("Data.jpeg");
             byte[] result = ms.ToArray();
             ms.Close();
             return result;
@@ -197,16 +198,17 @@ namespace parking_detector.Classes
                 areas.Add(p.Box.Square());
             }
 
-            var tresh = 0.9f;
+            var tresh = 0.3f;
             var result = new List<Prediction>();
             while (predictions.Count > 0)
             {
                 result.Add(predictions[0]);
+
                 for(int j = 1; j < predictions.Count; j++)
                 {
-                    var xx1 = Math.Min(predictions[0].Box.Xmin, predictions[j].Box.Xmin);
+                    var xx1 = Math.Max(predictions[0].Box.Xmin, predictions[j].Box.Xmin);
                     var xx2 = Math.Min(predictions[0].Box.Xmax, predictions[j].Box.Xmax);
-                    var yy1 = Math.Min(predictions[0].Box.Ymin, predictions[j].Box.Ymin);
+                    var yy1 = Math.Max(predictions[0].Box.Ymin, predictions[j].Box.Ymin);
                     var yy2 = Math.Min(predictions[0].Box.Ymax, predictions[j].Box.Ymax);
 
                     var w = Math.Max(0f, xx2 - xx1);

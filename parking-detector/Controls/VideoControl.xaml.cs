@@ -39,10 +39,11 @@ namespace parking_detector.Controls
         private void VideoConrol_MediaOpened(object sender, RoutedEventArgs e)
         {
             timerVideoPlayback = new DispatcherTimer();
-            timerVideoPlayback.Interval = TimeSpan.FromMilliseconds(10);
+            timerVideoPlayback.Interval = TimeSpan.FromMilliseconds(200);
             timerVideoPlayback.Tick += TimerVideoPlayback_Tick;
             timerVideoPlayback.Tick += OnTimerTick;
             timerVideoPlayback.Start();
+            detect.Size = (videoPlayer.NaturalVideoWidth, videoPlayer.NaturalVideoHeight);
         }
 
         private void videoPlayer_MediaEnded(object sender, RoutedEventArgs e)
@@ -66,12 +67,8 @@ namespace parking_detector.Controls
             bitmap = new RenderTargetBitmap(
                 width, height, 96, 96, PixelFormats.Default);
 
-
-            imageResult.Source = bitmap;
             bitmap.Render(visual);
-
-
-            detect.SetImage(imageResult.Source);
+            detect.SetImage((ImageSource)bitmap);
             detect.PreprocessImage();
             detect.RunInference();
 
