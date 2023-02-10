@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "parking-detector": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "Path": "d:\\Programs\\cuda\\Cuda\\"
+      }
+    }
+  }
+}

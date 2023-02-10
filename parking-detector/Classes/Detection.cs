@@ -8,6 +8,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -33,8 +35,11 @@ namespace parking_detector.Classes
         List<Prediction> predictions;
         public Detection()
         {
+            //NativeLibrary.Load("\\runtimes\\win-x64\\native\\onnxruntime_providers_cuda.dll");
+            SessionOptions so = SessionOptions.MakeSessionOptionWithCudaProvider(0);
+
             string modelPath = path + "//Model/model.onnx";
-            session = new InferenceSession(modelPath);
+            session = new InferenceSession(modelPath, so);
             data.inputTensorName = session.InputMetadata.First().Key;
             data.inputNodeMetadata = session.InputMetadata.First().Value;
         }
