@@ -1,10 +1,6 @@
-﻿using parking_detector.Classes;
-using System;
-using System.IO;
+﻿using System;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
-using System.Windows.Shapes;
 
 namespace parking_detector.Controls
 {
@@ -44,13 +40,6 @@ namespace parking_detector.Controls
         private void StartBtn_Click(object sender, RoutedEventArgs e)
         {
             videoControl.videoPlayer.Play();
-            Detection d = new Detection();
-            MessageBox.Show(d.ToString());
-        }
-        private void LoadImg_Click(object sender, RoutedEventArgs e)
-        {
-            
-
         }
     }
 }
