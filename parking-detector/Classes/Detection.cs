@@ -13,10 +13,8 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
 
-using Color = SixLabors.ImageSharp.Color; 
-using Font = SixLabors.Fonts.Font;
+using Color = SixLabors.ImageSharp.Color;
 using PointF = SixLabors.ImageSharp.PointF;
-using SystemFonts = SixLabors.Fonts.SystemFonts;
 
 namespace parking_detector.Classes
 {
@@ -26,7 +24,6 @@ namespace parking_detector.Classes
         public InferenceSession session;
 
         public Image<Rgb24> image;
-        public (int, int) NaturalSize { get; set; }
         public (int, int) ActualSize { get; set; }
 
         (string inputTensorName, NodeMetadata inputNodeMetadata) data;
@@ -36,15 +33,18 @@ namespace parking_detector.Classes
         public List<Prediction> predictions;
         public Detection()
         {
-            SessionOptions so = SessionOptions.MakeSessionOptionWithCudaProvider(0);
-
             string modelPath = path + "//Model/model.onnx";
-            session = new InferenceSession(modelPath, so);
-            session = new InferenceSession(modelPath);
+
+            SessionOptions so = SessionOptions.MakeSessionOptionWithCudaProvider(0);    //Если не запускается из VS
+            session = new InferenceSession(modelPath, so);                              //Запустить собранный exe
+                                                                                        //в bin
+
+            //session = new InferenceSession(modelPath);                                //Для отладки
             data.inputTensorName = session.InputMetadata.First().Key;
             data.inputNodeMetadata = session.InputMetadata.First().Value;
         }
 
+        //Установка нового кадра
         public void SetImage(ImageSource bmpSource)
         {
             using(MemoryStream ms = new MemoryStream())
@@ -57,6 +57,7 @@ namespace parking_detector.Classes
 
         }
 
+        //Преподготовка изображения
         public async Task PreprocessImage()
         {
             Tensor<float> input = new DenseTensor<float>(new[] { 1, data.inputNodeMetadata.Dimensions[1],
@@ -74,7 +75,7 @@ namespace parking_detector.Classes
             };
         }
 
-
+        //Запуск детекции
         public async Task RunInference()
         {
             using IDisposableReadOnlyCollection<DisposableNamedOnnxValue> results = session.Run(inputs);
@@ -89,6 +90,7 @@ namespace parking_detector.Classes
             NMS();
         }
 
+        //Наверное уже не нужна
         public void ViewPrediction()
         {
             using (var tmpImage = new Image<Rgba32>(image.Width, image.Height))
@@ -133,6 +135,7 @@ namespace parking_detector.Classes
                     }
         }
 
+
         void ToRGB(Tensor<float> input)
         {
             image.ProcessPixelRows(accessor =>
@@ -151,7 +154,7 @@ namespace parking_detector.Classes
 
         }
 
-        //Dictionary<int, (int , float)> is <idBox, (indxLabel, confValue)>
+        //Выходной словарь это <Индекс бокса, (Индекс класса, уверенность для данного класса)>
         Dictionary<int, (int , float)> BestConfidences(DenseTensor<float> confidences)
         {
             var minConfidence = 0.9f;
@@ -186,8 +189,12 @@ namespace parking_detector.Classes
             {
                 Prediction p = new Prediction()
                 {
-                    Box = new Box(boxes[0, elem.Key, 0, 0], boxes[0, elem.Key, 0, 1],
-                    boxes[0, elem.Key, 0, 2], boxes[0, elem.Key, 0, 3]),
+
+                    Box = new Box(
+                        boxes[0, elem.Key, 0, 0] * ActualSize.Item1,
+                        boxes[0, elem.Key, 0, 1] * ActualSize.Item2,
+                        boxes[0, elem.Key, 0, 2] * ActualSize.Item1,
+                        boxes[0, elem.Key, 0, 3] * ActualSize.Item2),
                     Label = LabelMap.Labels[elem.Value.Item1],
                     Confidence = elem.Value.Item2
                 };
@@ -195,6 +202,7 @@ namespace parking_detector.Classes
             }
         }
 
+        //Избавление от наложенных детекций
         void NMS()
         {
             List<float> areas = new List<float>();

@@ -38,8 +38,4 @@
     <Folder Include="Model\" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Resource Include="Controls\bboxesImg.png" />
-  </ItemGroup>
-
 </Project>
