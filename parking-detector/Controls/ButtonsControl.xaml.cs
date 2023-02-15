@@ -1,11 +1,10 @@
 ﻿using parking_detector.Classes;
-using SixLabors.ImageSharp;
 using System;
 using System.IO;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
+using System.Windows.Shapes;
 
 namespace parking_detector.Controls
 {
@@ -50,17 +49,8 @@ namespace parking_detector.Controls
         }
         private void LoadImg_Click(object sender, RoutedEventArgs e)
         {
-            videoControl.detect.image = (Image<SixLabors.ImageSharp.PixelFormats.Rgb24>)SixLabors.ImageSharp.Image.Load("frame.jpg");
-            videoControl.detect.PreprocessImage();
-            videoControl.detect.RunInference();
-
-            BitmapImage biImg = new BitmapImage();
-            MemoryStream ms = new MemoryStream(videoControl.detect.ViewPrediction());
-            biImg.BeginInit();
-            biImg.StreamSource = ms;
-            biImg.EndInit();
-            videoControl.imageResult.Source = biImg as ImageSource;
             
+
         }
     }
 }

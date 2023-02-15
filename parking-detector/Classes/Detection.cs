@@ -8,8 +8,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Reflection;
-using System.Runtime.InteropServices;
+using System.Threading.Tasks;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
@@ -27,19 +26,21 @@ namespace parking_detector.Classes
         public InferenceSession session;
 
         public Image<Rgb24> image;
-        public (int, int) Size { get; set; }
+        public (int, int) NaturalSize { get; set; }
+        public (int, int) ActualSize { get; set; }
 
         (string inputTensorName, NodeMetadata inputNodeMetadata) data;
 
+
         List<NamedOnnxValue> inputs;
-        List<Prediction> predictions;
+        public List<Prediction> predictions;
         public Detection()
         {
-            //NativeLibrary.Load("\\runtimes\\win-x64\\native\\onnxruntime_providers_cuda.dll");
             SessionOptions so = SessionOptions.MakeSessionOptionWithCudaProvider(0);
 
             string modelPath = path + "//Model/model.onnx";
             session = new InferenceSession(modelPath, so);
+            session = new InferenceSession(modelPath);
             data.inputTensorName = session.InputMetadata.First().Key;
             data.inputNodeMetadata = session.InputMetadata.First().Value;
         }
@@ -56,7 +57,7 @@ namespace parking_detector.Classes
 
         }
 
-        public void PreprocessImage()
+        public async Task PreprocessImage()
         {
             Tensor<float> input = new DenseTensor<float>(new[] { 1, data.inputNodeMetadata.Dimensions[1],
                 data.inputNodeMetadata.Dimensions[2], data.inputNodeMetadata.Dimensions[3]});
@@ -74,7 +75,7 @@ namespace parking_detector.Classes
         }
 
 
-        public void RunInference()
+        public async Task RunInference()
         {
             using IDisposableReadOnlyCollection<DisposableNamedOnnxValue> results = session.Run(inputs);
 
@@ -88,38 +89,38 @@ namespace parking_detector.Classes
             NMS();
         }
 
-        public byte[] ViewPrediction()
+        public void ViewPrediction()
         {
-            Font font = SystemFonts.CreateFont("Arial", 16);
-            float h = image.Height;
-            float w = image.Width;
-            foreach (var p in predictions)
+            using (var tmpImage = new Image<Rgba32>(image.Width, image.Height))
             {
-                image.Mutate(x =>
+                tmpImage.Mutate(x =>
                 {
-                    x.Resize(Size.Item1, Size.Item2);
-                    x.DrawLines(Color.Red, 2f, new PointF[] {
-
-                        new PointF(p.Box.Xmin * Size.Item1, p.Box.Ymin * Size.Item2),
-                        new PointF(p.Box.Xmax * Size.Item1, p.Box.Ymin * Size.Item2),
-                                                          
-                        new PointF(p.Box.Xmax * Size.Item1, p.Box.Ymin * Size.Item2),
-                        new PointF(p.Box.Xmax * Size.Item1, p.Box.Ymax * Size.Item2),
-                                                          
-                        new PointF(p.Box.Xmax * Size.Item1, p.Box.Ymax * Size.Item2),
-                        new PointF(p.Box.Xmin * Size.Item1, p.Box.Ymax * Size.Item2),
-                                                          
-                        new PointF(p.Box.Xmin * Size.Item1, p.Box.Ymax * Size.Item2),
-                        new PointF(p.Box.Xmin * Size.Item1, p.Box.Ymin * Size.Item2)
-        });
-                    //x.DrawText($"{p.Label + ":" + predictions.IndexOf(p) + ":"}", font, Color.White, new PointF(p.Box.Xmin * w, p.Box.Ymin * h));
+                    x.Resize(ActualSize.Item1, ActualSize.Item2);
+                    x.Fill(new RecolorBrush(Color.Black, Color.Transparent, 1f));
                 });
+                
+                foreach (var p in predictions)
+                {
+                    tmpImage.Mutate(x =>
+                    {
+                        
+                        x.DrawLines(Color.Red, 2f, new PointF[] {
+
+                        new PointF(p.Box.Xmin * ActualSize.Item1, p.Box.Ymin * ActualSize.Item2),
+                        new PointF(p.Box.Xmax * ActualSize.Item1, p.Box.Ymin * ActualSize.Item2),
+
+                        new PointF(p.Box.Xmax * ActualSize.Item1, p.Box.Ymin * ActualSize.Item2),
+                        new PointF(p.Box.Xmax * ActualSize.Item1, p.Box.Ymax * ActualSize.Item2),
+
+                        new PointF(p.Box.Xmax * ActualSize.Item1, p.Box.Ymax * ActualSize.Item2),
+                        new PointF(p.Box.Xmin * ActualSize.Item1, p.Box.Ymax * ActualSize.Item2),
+
+                        new PointF(p.Box.Xmin * ActualSize.Item1, p.Box.Ymax * ActualSize.Item2),
+                        new PointF(p.Box.Xmin * ActualSize.Item1, p.Box.Ymin * ActualSize.Item2)
+                        });
+                    });
+                }
             }
-            MemoryStream ms = new MemoryStream();
-            image.SaveAsJpeg(ms);
-            byte[] result = ms.ToArray();
-            ms.Close();
-            return result;
         }
 
         void Normalize(Tensor<float> input)
@@ -234,6 +235,9 @@ namespace parking_detector.Classes
             }
             predictions = result;
         }
+
     }
+
+    
 }
     

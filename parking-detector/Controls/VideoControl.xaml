@@ -12,10 +12,9 @@
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
 
-        <StackPanel Orientation="Horizontal" Grid.Row="0">
-            <MediaElement x:Name="videoPlayer" Grid.Row="0" MediaOpened="VideoConrol_MediaOpened" MediaEnded="videoPlayer_MediaEnded" LoadedBehavior="Manual" UnloadedBehavior="Manual"/>
-            <Image x:Name="imageResult"/>
-        </StackPanel>
+        <MediaElement x:Name="videoPlayer" Grid.Row="0" Panel.ZIndex="1" MediaOpened="VideoConrol_MediaOpened" MediaEnded="videoPlayer_MediaEnded" LoadedBehavior="Manual" UnloadedBehavior="Manual"/>
+        
         <Slider Grid.Row="1" VerticalAlignment="Center" x:Name="slider" Maximum="100" SmallChange="1" Margin="5,0,5,0" />
+        <Canvas x:Name="drawCanvas" HorizontalAlignment="Center" Background="Transparent" Grid.Row="0" Panel.ZIndex="2" SnapsToDevicePixels="True"/>
     </Grid>
 </UserControl>

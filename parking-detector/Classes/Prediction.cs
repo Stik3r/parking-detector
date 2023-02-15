@@ -27,5 +27,15 @@
         {
             return (Xmax - Xmin) * (Ymax - Ymin);
         }
+
+        public float Width
+        {
+            get { return Xmax - Xmin; }
+        }
+
+        public float Height
+        {
+            get { return Ymax - Ymin; }
+        }
     }
 }
