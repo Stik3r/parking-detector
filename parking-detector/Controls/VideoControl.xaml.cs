@@ -119,10 +119,6 @@ namespace parking_detector.Controls
         //Методы для рисования/удаления пользовательских квадратов
         private void CanvasOnMouseDown(object sender, MouseButtonEventArgs e)
         {
-<<<<<<< HEAD
-            
-=======
->>>>>>> 350b22f80f62df2fb3ae64c8254ac807d375b5bc
             isPaint = true;
             firstMousePoint = Mouse.GetPosition(canvas);
             drawingRect = new Rectangle();
@@ -155,10 +151,7 @@ namespace parking_detector.Controls
         {
             foreach(var pSpace in parkingSpace)
             {
-<<<<<<< HEAD
                 bool isTaken = false;
-=======
->>>>>>> 350b22f80f62df2fb3ae64c8254ac807d375b5bc
                 Box parkingBox = new Box(
                     (float)Canvas.GetLeft(pSpace),
                     (float)Canvas.GetTop(pSpace),
@@ -170,7 +163,6 @@ namespace parking_detector.Controls
                     if(ovr > 0.2)
                     {
                         pSpace.Stroke = Brushes.Red;
-<<<<<<< HEAD
                         isTaken = true;
                         break;
                     }
@@ -179,11 +171,6 @@ namespace parking_detector.Controls
                 {
                     pSpace.Stroke = Brushes.Green;
                 }
-=======
-                        break;
-                    }
-                }
->>>>>>> 350b22f80f62df2fb3ae64c8254ac807d375b5bc
             }
         }
 
