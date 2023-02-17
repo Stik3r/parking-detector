@@ -1,4 +1,9 @@
+<<<<<<< HEAD
 ﻿using System;
+=======
+﻿using parking_detector.Classes;
+using System;
+>>>>>>> 350b22f80f62df2fb3ae64c8254ac807d375b5bc
 using System.Windows;
 using System.Windows.Controls;
 
@@ -40,6 +45,11 @@ namespace parking_detector.Controls
         private void StartBtn_Click(object sender, RoutedEventArgs e)
         {
             videoControl.videoPlayer.Play();
+<<<<<<< HEAD
+=======
+            Detection d = new Detection();
+            MessageBox.Show(d.ToString());
+>>>>>>> 350b22f80f62df2fb3ae64c8254ac807d375b5bc
         }
     }
 }

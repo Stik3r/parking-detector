@@ -35,11 +35,19 @@ namespace parking_detector.Classes
         {
             string modelPath = path + "//Model/model.onnx";
 
+<<<<<<< HEAD
             //SessionOptions so = SessionOptions.MakeSessionOptionWithCudaProvider(0);    //Если не запускается из VS
             //session = new InferenceSession(modelPath, so);                              //Запустить собранный exe
                                                                                         //в bin
 
             session = new InferenceSession(modelPath);                                //Для отладки
+=======
+            SessionOptions so = SessionOptions.MakeSessionOptionWithCudaProvider(0);    //Если не запускается из VS
+            session = new InferenceSession(modelPath, so);                              //Запустить собранный exe
+                                                                                        //в bin
+
+            //session = new InferenceSession(modelPath);                                //Для отладки
+>>>>>>> 350b22f80f62df2fb3ae64c8254ac807d375b5bc
             data.inputTensorName = session.InputMetadata.First().Key;
             data.inputNodeMetadata = session.InputMetadata.First().Value;
         }
