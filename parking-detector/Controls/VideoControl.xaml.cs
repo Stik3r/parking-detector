@@ -1,5 +1,5 @@
 ﻿using parking_detector.Classes.Detections;
-using parking_detector.Classes;
+using parking_detector.Classes.Parking;
 using System;
 using System.Windows;
 using System.Windows.Controls;
@@ -10,7 +10,6 @@ using System.Windows.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using System.Collections.Generic;
 
 namespace parking_detector.Controls
 {
@@ -19,19 +18,21 @@ namespace parking_detector.Controls
     /// </summary>
     public partial class VideoControl : UserControl
     {
-        private DispatcherTimer timerVideoPlayback;                     //Таймер
-        private readonly DrawingVisual visual = new DrawingVisual();    //Визуал для захвата кадра
-        private RenderTargetBitmap bitmap;                              //Захваченый кадр
+        DispatcherTimer timerVideoPlayback;                     //Таймер
+        readonly DrawingVisual visual = new DrawingVisual();    //Визуал для захвата кадра
+        RenderTargetBitmap bitmap;                              //Захваченый кадр
 
-        private Channel<int> channel = Channel.CreateBounded<int>(1);
-        private Detection detect = new Detection();                      //Класс детекции
+        Channel<int> channel = Channel.CreateBounded<int>(1);
+        Detection detect = new Detection();                      //Класс детекции
 
         bool isPaint = false;
-        private ParkingSpace drawingRect;
-        private List<ParkingSpace> parkingSpace = new List<ParkingSpace>();
+        ParkingSpace drawingRect;
+
+        
         public VideoControl()
         {
             InitializeComponent();
+            ParkingController.deleteBox += DeleteBox; 
         }
 
         //Ползунок времени
@@ -46,6 +47,7 @@ namespace parking_detector.Controls
                 slider.Value = 0;
         }
 
+        //Открытие видео
         private void VideoConrol_MediaOpened(object sender, RoutedEventArgs e)
         {
             timerVideoPlayback = new DispatcherTimer();
@@ -55,6 +57,7 @@ namespace parking_detector.Controls
             timerVideoPlayback.Start();
         }
 
+        //Остановка видео
         private void videoPlayer_MediaEnded(object sender, RoutedEventArgs e)
         {
             timerVideoPlayback.Stop();
@@ -118,10 +121,13 @@ namespace parking_detector.Controls
         //Методы для рисования/удаления пользовательских квадратов
         private void CanvasOnMouseDown(object sender, MouseButtonEventArgs e)
         {
-            isPaint = true;
-            Rectangle r = new Rectangle();
-            drawingRect = new ParkingSpace(Mouse.GetPosition(canvas), r);
-            canvas.Children.Add(r);
+            if(e.ChangedButton == MouseButton.Left)
+            {
+                isPaint = true;
+                Rectangle r = new Rectangle();
+                drawingRect = new ParkingSpace(Mouse.GetPosition(canvas), r);
+                canvas.Children.Add(r);
+            }
         }
 
         private void CanvasOnMouseMove(object sender, MouseEventArgs e)
@@ -138,7 +144,8 @@ namespace parking_detector.Controls
             {
                 if (drawingRect.CheckSize())
                 {
-                    parkingSpace.Add(drawingRect);
+                    ParkingController.AddElement(drawingRect);
+                    drawingRect.deleteParkingSpace += ParkingController.DeleteItem;
                 }
                 else
                 {
@@ -149,25 +156,16 @@ namespace parking_detector.Controls
             }
         }
 
-        //Проверка парковочных мест на занятость(желательно создать отдельный
-        //класс для работы с коллекцией парковок)
+        //Проверка парковочных мест на занятость
         private void CheckParkingSpace()
         {
-            foreach(var pSpace in parkingSpace)
-            {
-                var isFree = true;
-                foreach(var prediction in detect.predictions)
-                {
-                    var ovr = Functions.IntersectionArea(pSpace.box, prediction.Box);
-                    if(ovr > 0.2)
-                    {
-                        pSpace.IsFree = isFree = false;
-                        break;
-                    }
-                }
-                if (isFree)
-                    pSpace.IsFree = isFree;
-            }
+            ParkingController.CheckParkingSpace(detect);
+        }
+
+        //Метод удаления из канваса
+        private void DeleteBox(Rectangle rect)
+        {
+            canvas.Children.Remove(rect);
         }
     }
 }

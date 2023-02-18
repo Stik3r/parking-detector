@@ -5,18 +5,24 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:parking_detector.Controls"
         mc:Ignorable="d"
-        Title="MainWindow" Height="493" Width="628">
+        Title="MainWindow" Height="460" Width="750">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="25"/>
             <RowDefinition Height="6*" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="0.7*"/>
+            <ColumnDefinition Width="0.3*"/>
+        </Grid.ColumnDefinitions>
 
-        <local:SettingsControl Grid.Row="0"/>
+        <local:SettingsControl Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2"/>
 
-        <local:VideoControl Grid.Row="1" x:Name="videoPlayer"/>
+        <local:VideoControl Grid.Row="1" Grid.Column="0" x:Name="videoPlayer"/>
 
-        <local:ButtonsControl Grid.Row="2" x:Name="buttons"/>
+        <local:ButtonsControl Grid.Row="2" Grid.Column="0" x:Name="buttons"/>
+
+        <local:DataControl Grid.Column="1" Grid.Row="1" Grid.RowSpan="2"/>
     </Grid>
 </Window>

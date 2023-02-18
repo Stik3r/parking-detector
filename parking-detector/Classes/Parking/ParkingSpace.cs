@@ -1,19 +1,26 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Input;
 using System.Windows.Shapes;
 
-namespace parking_detector.Classes
+namespace parking_detector.Classes.Parking
 {
-    class ParkingSpace
+    public class ParkingSpace
     {
         static int id = 0;
 
         Rectangle rectangle; //прямоугольник на видео
         Point firstMousePoint;
-        private bool isFree = true;
+        bool isFree = true;
 
-        public Box box; //Коробка парковки
+        public Box box; //Бокс парковки
                         //Необходима для сравнения с боксами детекций
+
+        public delegate void Operation(ParkingSpace pS); //делегат метода удаления элемента из 
+                                                        //коллекции пароковок
+        public Operation deleteParkingSpace;
+
+        public Rectangle Rectangle { get => rectangle; }
 
         //ID парковки
         public int ID { get; }
@@ -41,9 +48,23 @@ namespace parking_detector.Classes
             rectangle.StrokeThickness = 2;
             Canvas.SetLeft(rectangle, firstMousePoint.X);
             Canvas.SetTop(rectangle, firstMousePoint.Y);
+
+
+            //Создание конеткстного меню для удаления коробки
+            ContextMenu contextMenu = new ContextMenu();
+            MenuItem menuItem = new MenuItem()
+            {
+                Header = "Удалить"
+            };
+            menuItem.Click += (object sender, RoutedEventArgs e) =>
+            {
+                deleteParkingSpace(this);
+            };
+            contextMenu.Items.Add(menuItem);
+            rectangle.ContextMenu = contextMenu;
         }
 
-        //Отрисовка прямоугольника пользователем
+        //Отрисовка бокса пользователем
         public void TemporaryDrawingRectangle(Point secondMousePoint)
         {
             if (firstMousePoint.X > secondMousePoint.X)
@@ -76,9 +97,19 @@ namespace parking_detector.Classes
                     (float)Canvas.GetTop(rectangle),
                     (float)(rectangle.Width + Canvas.GetLeft(rectangle)),
                     (float)(rectangle.Height + Canvas.GetTop(rectangle)));
+                rectangle.PreviewMouseDown += OnMouseDown;
                 return true;
             }
             return false;
+        }
+
+        //Событие нажатия на бокс правой кнопкой мыши
+        private void OnMouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if(e.ChangedButton == MouseButton.Right)
+            {
+                rectangle.ContextMenu.IsOpen = true;
+            }
         }
     }
 }

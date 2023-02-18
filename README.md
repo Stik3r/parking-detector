@@ -1,4 +1,12 @@
 # Parking detector
+Детексция парковочных мест
+
+## 1.Необходимые компоненты
+- Cuda 11.6
+- cuDNN 8.2.4 (Linux)/8.5.0.96 (Windows)
+- ZLIB
+
+## 2.Ошибки
 Если вылетает ошибка 
 >[ONNXRuntimeError] : 1 : FAIL : LoadLibrary failed with error 126 
 
@@ -8,8 +16,3 @@ SessionOptions so = SessionOptions.MakeSessionOptionWithCudaProvider(0);
 session = new InferenceSession(modelPath, so);
 //session = new InferenceSession(modelPath);
 ```
-
-## 1.Необходимые компоненты
-- Cuda 11.6
-- cuDNN 8.2.4 (Linux)/8.5.0.96 (Windows)
-- ZLIB
