@@ -16,7 +16,7 @@ using System.Windows.Media.Imaging;
 using Color = SixLabors.ImageSharp.Color;
 using PointF = SixLabors.ImageSharp.PointF;
 
-namespace parking_detector.Classes
+namespace parking_detector.Classes.Detections
 {
     public class Detection
     {
@@ -219,17 +219,8 @@ namespace parking_detector.Classes
 
                 for(int j = 1; j < predictions.Count; j++)
                 {
-                    var xx1 = Math.Max(predictions[0].Box.Xmin, predictions[j].Box.Xmin);
-                    var xx2 = Math.Min(predictions[0].Box.Xmax, predictions[j].Box.Xmax);
-                    var yy1 = Math.Max(predictions[0].Box.Ymin, predictions[j].Box.Ymin);
-                    var yy2 = Math.Min(predictions[0].Box.Ymax, predictions[j].Box.Ymax);
-
-                    var w = Math.Max(0f, xx2 - xx1);
-                    var h = Math.Max(0f, yy2 - yy1);
-
-                    var inter = w * h;
-
-                    var ovr = inter / (areas[0] + areas[j] - inter);
+                    var ovr = Functions.IntersectionArea(predictions[0].Box,
+                        predictions[j].Box);
                     if(ovr > tresh)
                     {
                         areas.RemoveAt(j);
@@ -244,7 +235,5 @@ namespace parking_detector.Classes
         }
 
     }
-
-    
 }
     

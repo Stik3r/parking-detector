@@ -1,4 +1,5 @@
-﻿using parking_detector.Classes;
+﻿using parking_detector.Classes.Detections;
+using parking_detector.Classes;
 using System;
 using System.Windows;
 using System.Windows.Controls;
@@ -22,14 +23,12 @@ namespace parking_detector.Controls
         private readonly DrawingVisual visual = new DrawingVisual();    //Визуал для захвата кадра
         private RenderTargetBitmap bitmap;                              //Захваченый кадр
 
-        private Channel<int> channel = Channel.CreateBounded<int>(1);   
-
+        private Channel<int> channel = Channel.CreateBounded<int>(1);
         private Detection detect = new Detection();                      //Класс детекции
 
         bool isPaint = false;
-        private Point firstMousePoint;
-        private Rectangle drawingRect;
-        private List<Rectangle> parkingSpace = new List<Rectangle>();
+        private ParkingSpace drawingRect;
+        private List<ParkingSpace> parkingSpace = new List<ParkingSpace>();
         public VideoControl()
         {
             InitializeComponent();
@@ -120,74 +119,55 @@ namespace parking_detector.Controls
         private void CanvasOnMouseDown(object sender, MouseButtonEventArgs e)
         {
             isPaint = true;
-            firstMousePoint = Mouse.GetPosition(canvas);
-            drawingRect = new Rectangle();
-            canvas.Children.Add(drawingRect);
-            drawingRect.Stroke = Brushes.Green;
-            drawingRect.Fill = Brushes.Transparent;
-            drawingRect.StrokeThickness = 2;
-            Canvas.SetLeft(drawingRect, firstMousePoint.X);
-            Canvas.SetTop(drawingRect, firstMousePoint.Y);
+            Rectangle r = new Rectangle();
+            drawingRect = new ParkingSpace(Mouse.GetPosition(canvas), r);
+            canvas.Children.Add(r);
         }
 
         private void CanvasOnMouseMove(object sender, MouseEventArgs e)
         {
             if (isPaint)
             {
-                Point secondMousePoint = Mouse.GetPosition(canvas);
-                drawingRect.Width = secondMousePoint.X - firstMousePoint.X;
-                drawingRect.Height = secondMousePoint.Y - firstMousePoint.Y;
+                drawingRect.TemporaryDrawingRectangle(Mouse.GetPosition(canvas));
             }
         }
 
         private void CanvasOnMouseUp(object sender, MouseButtonEventArgs e)
         {
-            isPaint = false;
-            parkingSpace.Add(drawingRect);
-            drawingRect = null;
+            if(isPaint)
+            {
+                if (drawingRect.CheckSize())
+                {
+                    parkingSpace.Add(drawingRect);
+                }
+                else
+                {
+                    canvas.Children.RemoveAt(canvas.Children.Count - 1);
+                }
+                isPaint = false;
+                drawingRect = null;
+            }
         }
 
+        //Проверка парковочных мест на занятость(желательно создать отдельный
+        //класс для работы с коллекцией парковок)
         private void CheckParkingSpace()
         {
             foreach(var pSpace in parkingSpace)
             {
-                bool isTaken = false;
-                Box parkingBox = new Box(
-                    (float)Canvas.GetLeft(pSpace),
-                    (float)Canvas.GetTop(pSpace),
-                    (float)(pSpace.Width + Canvas.GetLeft(pSpace)),
-                    (float)(pSpace.Height + Canvas.GetTop(pSpace)));
+                var isFree = true;
                 foreach(var prediction in detect.predictions)
                 {
-                    var ovr = IntersectionArea(parkingBox, prediction.Box);
+                    var ovr = Functions.IntersectionArea(pSpace.box, prediction.Box);
                     if(ovr > 0.2)
                     {
-                        pSpace.Stroke = Brushes.Red;
-                        isTaken = true;
+                        pSpace.IsFree = isFree = false;
                         break;
                     }
                 }
-                if (!isTaken)
-                {
-                    pSpace.Stroke = Brushes.Green;
-                }
+                if (isFree)
+                    pSpace.IsFree = isFree;
             }
-        }
-
-        //Код дублируется с NMS в классе Detection необходимо переделать
-        private float IntersectionArea(Box b1, Box b2)
-        {
-            var xx1 = Math.Max(b1.Xmin, b2.Xmin);
-            var xx2 = Math.Min(b1.Xmax, b2.Xmax);
-            var yy1 = Math.Max(b1.Ymin, b2.Ymin);
-            var yy2 = Math.Min(b1.Ymax, b2.Ymax);
-
-            var w = Math.Max(0f, xx2 - xx1);
-            var h = Math.Max(0f, yy2 - yy1);
-
-            var inter = w * h;
-            var ovr = inter / (b1.Square() + b2.Square() - inter);
-            return ovr;
         }
     }
 }

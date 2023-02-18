@@ -1,4 +1,4 @@
-﻿namespace parking_detector.Classes
+﻿namespace parking_detector.Classes.Detections
 {
     class LabelMap
     {

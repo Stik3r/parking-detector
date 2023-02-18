@@ -8,3 +8,8 @@ SessionOptions so = SessionOptions.MakeSessionOptionWithCudaProvider(0);
 session = new InferenceSession(modelPath, so);
 //session = new InferenceSession(modelPath);
 ```
+
+## 1.Необходимые компоненты
+- Cuda 11.6
+- cuDNN 8.2.4 (Linux)/8.5.0.96 (Windows)
+- ZLIB
