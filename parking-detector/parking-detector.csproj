@@ -9,6 +9,9 @@
 
   <ItemGroup>
     <None Remove="Controls\bboxesImg.png" />
+    <None Remove="Img\file.png" />
+    <None Remove="Img\pause.png" />
+    <None Remove="Img\play.png" />
   </ItemGroup>
 
   <ItemGroup>
@@ -36,6 +39,12 @@
   <ItemGroup>
     <Folder Include="Resources\" />
     <Folder Include="Model\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Img\file.png" />
+    <Resource Include="Img\pause.png" />
+    <Resource Include="Img\play.png" />
   </ItemGroup>
 
 </Project>

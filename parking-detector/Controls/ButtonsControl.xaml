@@ -3,14 +3,55 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:parking_detector.Controls"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <Style x:Key="MyButtonStyle" TargetType="Button">
+            <Setter Property="OverridesDefaultStyle" Value="True"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Name="border" 
+                        BorderThickness="0"
+                        Padding="2" 
+                        BorderBrush="DarkGray" 
+                        CornerRadius="6" 
+                        Background="{TemplateBinding Background}" Height="40" Width="40">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="BorderBrush" Value="LightGray" />
+                                <Setter TargetName="border" Property="BorderThickness" Value="3" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+
     <Grid>
-        <StackPanel Orientation="Horizontal">
-            <Button Height="25" Width="100" HorizontalAlignment="Left" Margin="10,0,10,0" Content="Загрузить файл" Click="LoadBtn_Click"/>
-            <Button  Height="25" Width="100" HorizontalAlignment="Left" Margin="0,0,10,0" Content="Пуск" Click="StartBtn_Click"/>
-            <Button  Height="25" Width="100" HorizontalAlignment="Left" Margin="0,0,10,0" Content="Пауза" Click="StopBtn_Click"/>
+        <StackPanel Orientation="Horizontal" Background="#484546">
+            <Button   Style="{StaticResource MyButtonStyle}" x:Name="file"  Click="LoadBtn_Click" Height="44" >
+                <Button.Background>
+                    <ImageBrush ImageSource="/Img/file.png" Opacity="1"/>
+                </Button.Background>
+            </Button>
+
+            <Button Style="{StaticResource MyButtonStyle}" x:Name="play"   Click="StartBtn_Click" Height="49">
+                <Button.Background>
+                    <ImageBrush ImageSource="/Img/play.png" />
+                </Button.Background>
+            </Button>
+            <Button   Style="{StaticResource MyButtonStyle}" x:Name="pause"   Click="StopBtn_Click" Height="47" Width="50" >
+                <Button.Background>
+                    <ImageBrush ImageSource="/Img/pause.png" />
+                </Button.Background>
+
+            </Button>
         </StackPanel>
     </Grid>
 </UserControl>

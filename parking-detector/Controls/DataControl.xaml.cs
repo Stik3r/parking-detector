@@ -25,5 +25,10 @@ namespace parking_detector.Controls
             parkingCount.Text = ParkingController.Count().ToString();
             parkingCountTaken.Text = ParkingController.CountTaken().ToString();
         }
+
+        private void listBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+        {
+
+        }
     }
 }

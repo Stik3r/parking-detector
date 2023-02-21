@@ -17,6 +17,7 @@ namespace parking_detector.Controls
 
         private void LoadBtn_Click(object sender, RoutedEventArgs e)
         {
+            videoControl.timerVideoPlayback.Stop();
             string path = "";
             var dialog = new Microsoft.Win32.OpenFileDialog();
             dialog.Filter = "Video Files |*.avi;*mp4;";
@@ -28,7 +29,7 @@ namespace parking_detector.Controls
                 path = dialog.FileName;
             }
 
-            videoControl.videoPlayer.Source = (Uri)(new UriTypeConverter().ConvertFromString(path));
+            videoControl.videoPlayer.Source = (Uri)new UriTypeConverter().ConvertFromString(path);
             videoControl.videoPlayer.Play();
         }
 

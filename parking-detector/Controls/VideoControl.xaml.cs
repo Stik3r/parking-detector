@@ -18,7 +18,8 @@ namespace parking_detector.Controls
     /// </summary>
     public partial class VideoControl : UserControl
     {
-        DispatcherTimer timerVideoPlayback;                     //Таймер
+        public DispatcherTimer timerVideoPlayback;                     //Таймер
+
         readonly DrawingVisual visual = new DrawingVisual();    //Визуал для захвата кадра
         RenderTargetBitmap bitmap;                              //Захваченый кадр
 
@@ -32,7 +33,12 @@ namespace parking_detector.Controls
         public VideoControl()
         {
             InitializeComponent();
-            ParkingController.deleteBox += DeleteBox; 
+            ParkingController.deleteBox += DeleteBox;
+            timerVideoPlayback = new DispatcherTimer();
+            timerVideoPlayback.Interval = TimeSpan.FromMilliseconds(100);
+            timerVideoPlayback.Tick += TimerVideoPlayback_Tick;
+            timerVideoPlayback.Tick += OnTimerTick;
+            timerVideoPlayback.Stop();
         }
 
         //Ползунок времени
@@ -50,10 +56,6 @@ namespace parking_detector.Controls
         //Открытие видео
         private void VideoConrol_MediaOpened(object sender, RoutedEventArgs e)
         {
-            timerVideoPlayback = new DispatcherTimer();
-            timerVideoPlayback.Interval = TimeSpan.FromMilliseconds(100);
-            timerVideoPlayback.Tick += TimerVideoPlayback_Tick;
-            timerVideoPlayback.Tick += OnTimerTick;
             timerVideoPlayback.Start();
         }
 
@@ -97,11 +99,11 @@ namespace parking_detector.Controls
                 Rectangle rect = new Rectangle();
                 rect.Stroke = Brushes.Red;
                 rect.Fill = Brushes.Transparent;
-                rect.Width = p.Box.Width * detect.ActualSize.Item1;
-                rect.Height = p.Box.Height * detect.ActualSize.Item2;
+                rect.Width = p.Box.Width;
+                rect.Height = p.Box.Height;
                 canvas.Children.Add(rect);
-                Canvas.SetLeft(rect, p.Box.Xmin * detect.ActualSize.Item1);
-                Canvas.SetTop(rect, p.Box.Ymin * detect.ActualSize.Item2);
+                Canvas.SetLeft(rect, p.Box.Xmin);
+                Canvas.SetTop(rect, p.Box.Ymin);
             }
         }
 
@@ -110,9 +112,10 @@ namespace parking_detector.Controls
         {
             if (channel.Writer.TryWrite(1))
             {
-                await Dispatcher.BeginInvoke(() => detect.SetImage((ImageSource)bitmap));
+                await Dispatcher.BeginInvoke(() => detect.SetImage(bitmap));
                 await detect.PreprocessImage();
                 await detect.RunInference();
+                //await Dispatcher.BeginInvoke(() => DrawPredictionsOnCanvas());
                 await Dispatcher.BeginInvoke(() => this.CheckParkingSpace());
                 channel.Reader.TryRead(out int val);
             }

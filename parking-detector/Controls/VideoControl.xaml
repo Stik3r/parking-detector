@@ -3,17 +3,20 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:parking_detector.Controls"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
-    <Grid>
+    <Grid Background="#FF484546">
         <Grid.RowDefinitions>
             <RowDefinition Height="6*" />
             <RowDefinition Height="*" />
         </Grid.RowDefinitions>
-
+        <Border CornerRadius="6"
+            BorderThickness="3"
+            BorderBrush="Gray">
         <MediaElement x:Name="videoPlayer" Grid.Row="0" Panel.ZIndex="1" MediaOpened="VideoConrol_MediaOpened" MediaEnded="videoPlayer_MediaEnded" LoadedBehavior="Manual" UnloadedBehavior="Manual"/>
+        </Border>
         <Slider Grid.Row="1" VerticalAlignment="Center" x:Name="slider" Maximum="100" SmallChange="1" Margin="5,0,5,0" />
-        <Canvas x:Name="canvas" HorizontalAlignment="Center" Background="Transparent" Grid.Row="0" Panel.ZIndex="2" SnapsToDevicePixels="True" PreviewMouseDown="CanvasOnMouseDown" MouseMove="CanvasOnMouseMove" MouseUp="CanvasOnMouseUp"/>
+        <Canvas  x:Name="canvas" HorizontalAlignment="Center" Background="Transparent" Grid.Row="0" Panel.ZIndex="2" SnapsToDevicePixels="True" PreviewMouseDown="CanvasOnMouseDown" MouseMove="CanvasOnMouseMove" MouseUp="CanvasOnMouseUp" Height="386" Grid.RowSpan="2" VerticalAlignment="Top"/>
+
     </Grid>
 </UserControl>

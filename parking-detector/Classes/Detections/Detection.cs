@@ -20,16 +20,16 @@ namespace parking_detector.Classes.Detections
 {
     public class Detection
     {
+        List<NamedOnnxValue> inputs; // Входные данные
+        (string inputTensorName, NodeMetadata inputNodeMetadata) data; //Информация о модели
         string path = Directory.GetParent(Environment.CurrentDirectory).Parent.Parent.FullName;
         public InferenceSession session;
 
         public Image<Rgb24> image;
         public (int, int) ActualSize { get; set; }
 
-        (string inputTensorName, NodeMetadata inputNodeMetadata) data;
+        
 
-
-        List<NamedOnnxValue> inputs;
         public List<Prediction> predictions;
         public Detection()
         {
@@ -156,7 +156,7 @@ namespace parking_detector.Classes.Detections
         //Выходной словарь это <Индекс бокса, (Индекс класса, уверенность для данного класса)>
         Dictionary<int, (int , float)> BestConfidences(DenseTensor<float> confidences)
         {
-            var minConfidence = 0.9f;
+            var minConfidence = 0.7f;
             var result = new Dictionary<int, (int, float)>();
 
             for (int i = 0; i < confidences.Dimensions[1]; i++)

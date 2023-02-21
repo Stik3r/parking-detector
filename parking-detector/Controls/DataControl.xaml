@@ -3,24 +3,37 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:local="clr-namespace:parking_detector.Controls"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
-        <ListBox x:Name="listBox" IsHitTestVisible="False">
-            <ListBoxItem>
+        <Border CornerRadius="6"
+            BorderThickness="3"
+            BorderBrush="Gray">
+            <ListBox x:Name="listBox" IsHitTestVisible="False" SelectionChanged="listBox_SelectionChanged" Background="#484546"  TextBlock.Foreground="#D3D7DC"
+                                                  TextBlock.FontFamily="Rubik Medium"
+                                                  TextBlock.FontSize="15" >
+                <ListBoxItem >
                 <TextBlock Text="Всего мест на парковке:"/>
             </ListBoxItem>
+                <Border CornerRadius="6"
+                    BorderThickness="1"
+                    BorderBrush="Gray">
             <ListBoxItem>
                 <TextBlock x:Name="parkingCount"/>
             </ListBoxItem>
+                </Border>
             <ListBoxItem>
                 <TextBlock Text="Занято мест:"/>
             </ListBoxItem>
+                <Border CornerRadius="6"
+                    BorderThickness="1"
+                    BorderBrush="Gray">
             <ListBoxItem>
                 <TextBlock x:Name="parkingCountTaken"/>
             </ListBoxItem>
+                </Border>
         </ListBox>
+        </Border>
     </Grid>
     
     
