@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Shapes;
 
 namespace parking_detector.Classes.Parking
@@ -9,9 +10,14 @@ namespace parking_detector.Classes.Parking
     {
         static int id = 0;
 
+        TextBlock spaceID;
         Rectangle rectangle; //прямоугольник на видео
         Point firstMousePoint;
         bool isFree = true;
+
+        //public bool isMove = false;
+
+
 
         public Box box; //Бокс парковки
                         //Необходима для сравнения с боксами детекций
@@ -21,6 +27,13 @@ namespace parking_detector.Classes.Parking
         public Operation deleteParkingSpace;
 
         public Rectangle Rectangle { get => rectangle; }
+        public TextBlock SpaceID { get => spaceID; }
+
+        public int Matches
+        {
+            get;
+            set;
+        }
 
         //ID парковки
         public int ID { get; }
@@ -31,9 +44,9 @@ namespace parking_detector.Classes.Parking
             set
             {
                 if (value)
-                    rectangle.Stroke = System.Windows.Media.Brushes.Green;
+                    rectangle.Stroke = Brushes.Green;
                 else
-                    rectangle.Stroke = System.Windows.Media.Brushes.Red;
+                    rectangle.Stroke = Brushes.Red;
                 isFree = value;
             }
             get => isFree;
@@ -44,11 +57,17 @@ namespace parking_detector.Classes.Parking
             ID = id++;
             this.firstMousePoint = firstMousePoint;
             this.rectangle = rectangle;
-            rectangle.Stroke = System.Windows.Media.Brushes.Green;
-            rectangle.StrokeThickness = 2;
+            rectangle.Stroke = Brushes.Green;
+            rectangle.StrokeThickness = 3;
             Canvas.SetLeft(rectangle, firstMousePoint.X);
             Canvas.SetTop(rectangle, firstMousePoint.Y);
 
+            spaceID = new TextBlock();
+            spaceID.Text = $"ID: {ID}";
+            spaceID.FontWeight = FontWeights.Bold;
+            spaceID.Foreground = Brushes.White;
+            Canvas.SetLeft(spaceID, firstMousePoint.X);
+            Canvas.SetTop(spaceID, firstMousePoint.Y);
 
             //Создание конеткстного меню для удаления коробки
             ContextMenu contextMenu = new ContextMenu();
@@ -70,6 +89,7 @@ namespace parking_detector.Classes.Parking
             if (firstMousePoint.X > secondMousePoint.X)
             {
                 Canvas.SetLeft(rectangle, secondMousePoint.X);
+                Canvas.SetLeft(spaceID, secondMousePoint.X);
                 rectangle.Width = firstMousePoint.X - secondMousePoint.X;
             }
             else
@@ -79,6 +99,7 @@ namespace parking_detector.Classes.Parking
             if (firstMousePoint.Y > secondMousePoint.Y)
             {
                 Canvas.SetTop(rectangle, secondMousePoint.Y);
+                Canvas.SetTop(spaceID, secondMousePoint.Y);
                 rectangle.Height = firstMousePoint.Y - secondMousePoint.Y;
             }
             else
@@ -92,12 +113,8 @@ namespace parking_detector.Classes.Parking
         {
             if(rectangle.Width > 10 && rectangle.Height > 10)
             {
-                box = new Box(
-                    (float)Canvas.GetLeft(rectangle),
-                    (float)Canvas.GetTop(rectangle),
-                    (float)(rectangle.Width + Canvas.GetLeft(rectangle)),
-                    (float)(rectangle.Height + Canvas.GetTop(rectangle)));
-                rectangle.PreviewMouseDown += OnMouseDown;
+                UpdateBox();
+                rectangle.MouseDown += OnMouseDown;
                 return true;
             }
             return false;
@@ -110,6 +127,40 @@ namespace parking_detector.Classes.Parking
             {
                 rectangle.ContextMenu.IsOpen = true;
             }
+            else if(e.ChangedButton == MouseButton.Left)
+            {
+                if (isEdge(e.GetPosition(rectangle)))
+                {
+                    ParkingController.deformingRect = rectangle;
+                }
+                else
+                {
+                    ParkingController.movingRect = rectangle;
+                }
+            }
+        }
+
+        //Проверка на нажатие на угол
+        private bool isEdge(Point mPoint)
+        {
+            bool edgeX = false;
+            bool edgeY = false;
+            if (mPoint.X < 5 || mPoint.X > rectangle.Width - 5)
+                edgeX = true;
+            if (mPoint.Y < 5 || mPoint.Y > rectangle.Height - 5)
+                edgeY = true;
+
+            return edgeX && edgeY;
+        }
+
+        //Обновление позиции коробки
+        public void UpdateBox()
+        {
+            box = new Box(
+                    (float)Canvas.GetLeft(rectangle),
+                    (float)Canvas.GetTop(rectangle),
+                    (float)(rectangle.Width + Canvas.GetLeft(rectangle)),
+                    (float)(rectangle.Height + Canvas.GetTop(rectangle)));
         }
     }
 }

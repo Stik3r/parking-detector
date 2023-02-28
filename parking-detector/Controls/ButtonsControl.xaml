@@ -46,7 +46,7 @@
                     <ImageBrush ImageSource="/Img/play.png" />
                 </Button.Background>
             </Button>
-            <Button   Style="{StaticResource MyButtonStyle}" x:Name="pause"   Click="StopBtn_Click" Height="47" Width="50" >
+            <Button   Style="{StaticResource MyButtonStyle}" x:Name="pause"   Click="StopBtn_Click" Height="47" RenderTransformOrigin="0.25,0.5" >
                 <Button.Background>
                     <ImageBrush ImageSource="/Img/pause.png" />
                 </Button.Background>

@@ -163,7 +163,7 @@ namespace parking_detector.Classes.Detections
             {
                 float max = 0;
                 int maxIndx = -1;
-                for (int j = 1; j < confidences.Dimensions[2]; j++)
+                for (int j = 0; j < confidences.Dimensions[2]; j++)
                 {
                     if (max < confidences[0, i, j] && confidences[0, i, j] > minConfidence)
                     {

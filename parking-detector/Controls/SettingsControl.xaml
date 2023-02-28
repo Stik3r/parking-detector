@@ -16,7 +16,7 @@
                                 Background="#363435"
                                 BorderThickness="0"
                                 Height="30"
-                                Width="145">
+                                Width="175">
     <Grid>
                                
                                 <ContentPresenter ContentSource="Header"
@@ -78,6 +78,56 @@
                 </Setter.Value>
             </Setter>
         </Style>
+
+        <Style x:Key="Services_Sub_MenuItem"
+               TargetType="MenuItem">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="{x:Type MenuItem}">
+                        <Border x:Name="border"
+                                Background="#363435"
+                                BorderThickness="0">
+                            <Grid>
+                               
+                               
+                                <ContentPresenter ContentSource="Header"
+                                                  TextBlock.Foreground="#D3D7DC"
+                                                  TextBlock.FontFamily="Rubik Medium"
+                                                  TextBlock.FontSize="15"
+                                                  HorizontalAlignment="Left"
+                                                  VerticalAlignment="Center"
+                                                  Margin="5,0,0,0" />
+
+                                <Grid x:Name="Highlighter"
+                                      Height="35"
+                                      Width="2"
+                                      Background="#FFFFFF"
+                                      HorizontalAlignment="Left"
+                                      VerticalAlignment="Center"
+                                      Visibility="Collapsed" />
+
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted"
+                                     Value="True">
+                                <Setter Property="Background"
+                                        TargetName="border"
+                                        Value="#3E3C3D" />
+                                <Setter Property="BorderBrush"
+                                        TargetName="border"
+                                        Value="#3E3C3D" />
+                                <Setter Property="Visibility"
+                                        TargetName="Highlighter"
+                                        Value="Visible" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+
     </UserControl.Resources>
    
     
@@ -87,7 +137,7 @@
             <MenuItem Header="SERVICES" Style="{StaticResource Services_MenuItem_With_Dropdown}">
 
 
-                <MenuItem Header="Camera" Style="{StaticResource Services_MenuItem_With_Dropdown}"
+                <MenuItem Header="Camera" Style="{StaticResource Services_Sub_MenuItem}"
                           Height="35"
                           Width="175"
                           >
@@ -95,7 +145,7 @@
 
                 </MenuItem>
 
-                <MenuItem Header="Exit" Style="{StaticResource Services_MenuItem_With_Dropdown}"
+                <MenuItem Header="Exit" Style="{StaticResource Services_Sub_MenuItem}"
                           Height="35"
                           Width="175">
                     

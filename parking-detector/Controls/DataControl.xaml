@@ -6,33 +6,43 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
-        <Border CornerRadius="6"
-            BorderThickness="3"
-            BorderBrush="Gray">
+        <Border CornerRadius="0"
+            BorderThickness="7"
+            BorderBrush="#484546">
             <ListBox x:Name="listBox" IsHitTestVisible="False" SelectionChanged="listBox_SelectionChanged" Background="#484546"  TextBlock.Foreground="#D3D7DC"
                                                   TextBlock.FontFamily="Rubik Medium"
-                                                  TextBlock.FontSize="15" >
-                <ListBoxItem >
-                <TextBlock Text="Всего мест на парковке:"/>
-            </ListBoxItem>
-                <Border CornerRadius="6"
-                    BorderThickness="1"
-                    BorderBrush="Gray">
-            <ListBoxItem>
-                <TextBlock x:Name="parkingCount"/>
-            </ListBoxItem>
+                                                  TextBlock.FontSize="15" Margin="0,0,-3,-3" BorderThickness="0">
+                <ListBoxItem>
+                    <Border CornerRadius="6"
+                    BorderThickness="4"
+                    BorderBrush="#363435"  Width="190">
+                        <StackPanel Orientation="Vertical" Background="#363435">
+                            <ListBoxItem>
+                                <TextBlock Text="Всего мест на парковке:"/>
+                            </ListBoxItem>
+                            <ListBoxItem>
+                                <TextBlock x:Name="parkingCount"/>
+                            </ListBoxItem>
+                        </StackPanel>
                 </Border>
-            <ListBoxItem>
-                <TextBlock Text="Занято мест:"/>
-            </ListBoxItem>
-                <Border CornerRadius="6"
-                    BorderThickness="1"
-                    BorderBrush="Gray">
-            <ListBoxItem>
-                <TextBlock x:Name="parkingCountTaken"/>
-            </ListBoxItem>
-                </Border>
-        </ListBox>
+                 </ListBoxItem>
+
+
+                <ListBoxItem>
+                    <Border CornerRadius="6"
+                    BorderThickness="6"
+                    BorderBrush="#363435" Width="190">
+                        <StackPanel Orientation="Vertical" Background="#363435">
+                            <ListBoxItem>
+                                <TextBlock Text="Занято мест:"/>
+                            </ListBoxItem>
+                            <ListBoxItem>
+                                <TextBlock x:Name="parkingCountTaken"/>
+                            </ListBoxItem>
+                        </StackPanel>
+                    </Border>
+                </ListBoxItem>
+            </ListBox>
         </Border>
     </Grid>
     

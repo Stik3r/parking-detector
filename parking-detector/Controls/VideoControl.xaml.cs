@@ -29,7 +29,10 @@ namespace parking_detector.Controls
         bool isPaint = false;
         ParkingSpace drawingRect;
 
-        
+        Rectangle movingRect = null;
+
+
+
         public VideoControl()
         {
             InitializeComponent();
@@ -124,12 +127,22 @@ namespace parking_detector.Controls
         //Методы для рисования/удаления пользовательских квадратов
         private void CanvasOnMouseDown(object sender, MouseButtonEventArgs e)
         {
-            if(e.ChangedButton == MouseButton.Left)
+            if (e.ChangedButton == MouseButton.Left && 
+                ParkingController.movingRect == null &&
+                ParkingController.deformingRect == null)
             {
                 isPaint = true;
                 Rectangle r = new Rectangle();
                 drawingRect = new ParkingSpace(Mouse.GetPosition(canvas), r);
                 canvas.Children.Add(r);
+                canvas.Children.Add(drawingRect.SpaceID);
+            }
+            else if(ParkingController.movingRect != null)
+            {
+                Canvas.SetLeft(ParkingController.movingRect,
+                    e.GetPosition(canvas).X - ParkingController.movingRect.Width / 2.0);
+                Canvas.SetTop(ParkingController.movingRect,
+                    e.GetPosition(canvas).Y - ParkingController.movingRect.Height / 2.0);
             }
         }
 
@@ -138,6 +151,32 @@ namespace parking_detector.Controls
             if (isPaint)
             {
                 drawingRect.TemporaryDrawingRectangle(Mouse.GetPosition(canvas));
+            }
+            if (ParkingController.deformingRect != null)
+            {
+                var pSpace = ParkingController.GetDeformingParking();
+                Point mPoint = e.GetPosition(canvas);
+
+                Vector v1 = new Vector(mPoint.X - pSpace.box.Xmax, mPoint.Y - pSpace.box.Ymax);
+                Vector v2 = new Vector(mPoint.X - pSpace.box.Xmax, 0);
+                double angle = Vector.AngleBetween(v1, v2);
+                ParkingController.deformingRect.RenderTransform = new SkewTransform()
+                {
+                    AngleX = angle
+                };
+            }
+            else if (ParkingController.movingRect != null)
+            {
+                double x = e.GetPosition(canvas).X - ParkingController.movingRect.Width / 2;
+                double y = e.GetPosition(canvas).Y - ParkingController.movingRect.Height / 2;
+
+                Canvas.SetLeft(ParkingController.movingRect, x);
+                Canvas.SetTop(ParkingController.movingRect, y);
+
+                var pSpace = ParkingController.GetMovingParking();
+
+                Canvas.SetLeft(pSpace.SpaceID, x);
+                Canvas.SetTop(pSpace.SpaceID, y);
             }
         }
 
@@ -148,14 +187,26 @@ namespace parking_detector.Controls
                 if (drawingRect.CheckSize())
                 {
                     ParkingController.AddElement(drawingRect);
+                    
                     drawingRect.deleteParkingSpace += ParkingController.DeleteItem;
                 }
                 else
                 {
-                    canvas.Children.RemoveAt(canvas.Children.Count - 1);
+                    canvas.Children.Remove(drawingRect.Rectangle);
+                    canvas.Children.Remove(drawingRect.SpaceID);
                 }
                 isPaint = false;
                 drawingRect = null;
+            }
+            if (ParkingController.movingRect != null)
+            {
+                ParkingController.UpdateParkingSpace();
+                ParkingController.movingRect = null;
+            }
+            if(ParkingController.deformingRect != null)
+            {
+                ParkingController.UpdateParkingSpace();
+                ParkingController.deformingRect = null;
             }
         }
 
@@ -166,7 +217,7 @@ namespace parking_detector.Controls
         }
 
         //Метод удаления из канваса
-        private void DeleteBox(Rectangle rect)
+        private void DeleteBox(UIElement rect)
         {
             canvas.Children.Remove(rect);
         }

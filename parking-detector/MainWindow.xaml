@@ -24,5 +24,6 @@
         <local:ButtonsControl Grid.Row="2" Grid.Column="0" x:Name="buttons"/>
 
         <local:DataControl Grid.Column="1" Grid.Row="1" Grid.RowSpan="2"/>
+        <Image Grid.Column="1" Grid.Row="2" Source="/Img/logo.png" Stretch="Uniform"/>
     </Grid>
 </Window>
